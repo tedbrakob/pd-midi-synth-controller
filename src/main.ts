@@ -18,35 +18,36 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   </div>
 `;
 
-await WebMidi.enable()
-
-for (const input of WebMidi.inputs) {
-  input.addListener('noteon', (e) => {
-    sendNoteToPlaydate(e);
-  });
-  input.addListener('noteoff', (e) => {
-    sendNoteToPlaydate(e);
-  });
-  input.addListener('controlchange', (e) => {
-    if (e.subtype === 'damperpedal') {
-      sendControlChangeToPlaydate(e);
-    }
-  });
-}
+WebMidi.enable().then(() => {
+  for (const input of WebMidi.inputs) {
+    input.addListener('noteon', (e) => {
+      sendNoteToPlaydate(e);
+    });
+    input.addListener('noteoff', (e) => {
+      sendNoteToPlaydate(e);
+    });
+    input.addListener('controlchange', (e) => {
+      if (e.subtype === 'damperpedal') {
+        sendControlChangeToPlaydate(e);
+      }
+    });
+  }
+})
 
 const connectButton = document.getElementById('connectButton');
 let playdate : PlaydateDevice;
 
 if (connectButton) {
-  connectButton.addEventListener('click', async () => {
-    try {
-      playdate = await requestConnectPlaydate();
-      await playdate.serial.open();
-    } catch (e) {
+  connectButton.addEventListener('click', () => {
+    requestConnectPlaydate().then((pd) => {
+      console.log(pd);
+      playdate = pd;
+      playdate.serial.open()
+    }).catch(_ => {
       alert(
         'Could not connect to Playdate, lock and unlock the device and try again.'
       );
-    }
+    })
   });
 }
 
