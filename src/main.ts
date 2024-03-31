@@ -6,6 +6,15 @@ import { PlaydateDevice, requestConnectPlaydate } from 'pd-usb'
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <button id="connectButton">Connect to Playdate</button>
+    <p>
+      Connect a MIDI keyboard and Playdate via USB and refresh the page.
+    </p>
+    <p>
+      Then click the button above to connect to the Playdate.  (MIDI device does not require a manual connection step)
+    </p>
+    <p>
+      Open the JavaScript console to show message strings being sent to Playdate
+    </p>
   </div>
 `;
 
@@ -14,16 +23,13 @@ await WebMidi.enable()
 for (const input of WebMidi.inputs) {
   input.addListener('noteon', (e) => {
     sendNoteToPlaydate(e);
-    console.log(e);
   });
   input.addListener('noteoff', (e) => {
     sendNoteToPlaydate(e);
-    console.log(e);
   });
   input.addListener('controlchange', (e) => {
     if (e.subtype === 'damperpedal') {
       sendControlChangeToPlaydate(e);
-      console.log(e.value);
     }
   });
 }
@@ -50,7 +56,19 @@ async function sendMessageToPlaydate(jsonMessage: {
   value?: boolean | number;
   velocity?: boolean | number;
 }) {
-  await playdate.serial.writeAscii('msg ' + JSON.stringify(jsonMessage) + '\n');
+  try {
+    const stringMessage = `msg ${JSON.stringify(jsonMessage)}`;
+    console.log(stringMessage + "\\n");
+    await playdate.serial.writeAscii(stringMessage + "\n");
+  } catch (e) {
+    if (jsonMessage.type !== 'noteon') {
+      console.error(
+        'suppressed error: Input received from MIDI device could not be sent to Playdate.  Try reconnecting Playdate.'
+      );
+      return;
+    }
+    alert('Input received from MIDI device could not be sent to Playdate.  Try reconnecting Playdate.')
+  }
 }
 
 async function sendNoteToPlaydate(event: NoteMessageEvent) {
