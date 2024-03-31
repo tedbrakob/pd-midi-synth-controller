@@ -1,0 +1,19 @@
+{
+  "name": "pd-midi",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0"
+  },
+  "dependencies": {
+    "pd-usb": "^2.0.1",
+    "webmidi": "^3.1.8"
+  }
+}
